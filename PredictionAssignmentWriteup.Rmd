@@ -27,6 +27,8 @@ testing <- X[-inTrain,]
 preObj <- preProcess(training[,-length(training)],method=c("center", "scale", "knnImpute", "pca"), thresh=0.9)
 #create dataset for prediction
 clean_data <- predict(preObj,training[,-length(training)])
+#create clean_data for testing
+test_data <- predict(preObj,testing[,-length(testing)])
 ```
 
 ##Model-building
@@ -35,10 +37,21 @@ using the train dataset for building a random forest
 ```{r}
 #calculating RandomForest with train set
 Predictor<-as.factor(training$classe)
-# model <- train(clean_data,Predictor, method="rf")
-# #predicting in the test set
-# test <- predict(preObj, testing[,-length(testing)])
-# #test model with confusion matrix
-# confusionMatrix(testing$classe, predict(model,test))
+Predictor_test<-as.factor(testing$classe)
+
+library(randomForest)
+model <- randomForest(Predictor ~ ., data = clean_data, ntree = 250)
+
+#predicting in the train set
+predictions_train <- predict(model, newdata=clean_data)
+#predicting in the test set
+predictions_test <- predict(model, newdata=test_data)
+
+#test model with confusion matrix (test and train)
+confusionMatrix(predictions_train,Predictor)
+confusionMatrix(predictions_test, Predictor_test)
+
 ```
-calculating the model takes over 1 day, so I just uncommented this lines
+The train_data has an accuracy of 100%, which is perfect.
+The test_data gets an accuracy of 97.36% which is very good!!! This means, that the model not only works on the training model, but also on new data.
+

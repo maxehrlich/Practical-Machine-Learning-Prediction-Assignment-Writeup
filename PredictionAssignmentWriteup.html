@@ -87,19 +87,93 @@ testing &lt;- X[-inTrain,]
 #pca for factorization
 preObj &lt;- preProcess(training[,-length(training)],method=c(&quot;center&quot;, &quot;scale&quot;, &quot;knnImpute&quot;, &quot;pca&quot;), thresh=0.9)
 #create dataset for prediction
-clean_data &lt;- predict(preObj,training[,-length(training)])</code></pre>
+clean_data &lt;- predict(preObj,training[,-length(training)])
+#create clean_data for testing
+test_data &lt;- predict(preObj,testing[,-length(testing)])</code></pre>
 </div>
 <div id="model-building" class="section level2">
 <h2>Model-building</h2>
 <p>using the train dataset for building a random forest</p>
 <pre class="r"><code>#calculating RandomForest with train set
 Predictor&lt;-as.factor(training$classe)
-# model &lt;- train(clean_data,Predictor, method=&quot;rf&quot;)
-# #predicting in the test set
-# test &lt;- predict(preObj, testing[,-length(testing)])
-# #test model with confusion matrix
-# confusionMatrix(testing$classe, predict(model,test))</code></pre>
-<p>calculating the model takes over 1 day, so I just uncommented this lines</p>
+Predictor_test&lt;-as.factor(testing$classe)
+
+library(randomForest)</code></pre>
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre class="r"><code>model &lt;- randomForest(Predictor ~ ., data = clean_data, ntree = 250)
+
+#predicting in the train set
+predictions_train &lt;- predict(model, newdata=clean_data)
+#predicting in the test set
+predictions_test &lt;- predict(model, newdata=test_data)
+
+#test model with confusion matrix (test and train)
+confusionMatrix(predictions_train,Predictor)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 3348    0    0    0    0
+##          B    0 2279    0    0    0
+##          C    0    0 2054    0    0
+##          D    0    0    0 1930    0
+##          E    0    0    0    0 2165
+## 
+## Overall Statistics
+##                                      
+##                Accuracy : 1          
+##                  95% CI : (0.9997, 1)
+##     No Information Rate : 0.2843     
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16  
+##                                      
+##                   Kappa : 1          
+##  Mcnemar's Test P-Value : NA         
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Specificity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Pos Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Neg Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Prevalence             0.2843   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2843   0.1935   0.1744   0.1639   0.1838
+## Detection Prevalence   0.2843   0.1935   0.1744   0.1639   0.1838
+## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
+<pre class="r"><code>confusionMatrix(predictions_test, Predictor_test)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 2207   31    6    2    0
+##          B   17 1453   31    5    7
+##          C    3   30 1321   37    5
+##          D    5    1    4 1235   15
+##          E    0    3    6    7 1415
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9726          
+##                  95% CI : (0.9687, 0.9761)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9653          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9888   0.9572   0.9656   0.9603   0.9813
+## Specificity            0.9931   0.9905   0.9884   0.9962   0.9975
+## Pos Pred Value         0.9826   0.9603   0.9463   0.9802   0.9888
+## Neg Pred Value         0.9955   0.9897   0.9927   0.9923   0.9958
+## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2813   0.1852   0.1684   0.1574   0.1803
+## Detection Prevalence   0.2863   0.1928   0.1779   0.1606   0.1824
+## Balanced Accuracy      0.9909   0.9738   0.9770   0.9783   0.9894</code></pre>
+<p>The train_data has an accuracy of 100%, which is perfect. The test_data gets an accuracy of 97.36% which is very good!!! This means, that the model not only works on the training model, but also on new data.</p>
 </div>
 </div>
 
